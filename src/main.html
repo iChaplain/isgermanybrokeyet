@@ -1,0 +1,118 @@
+<html>
+    <head>
+        <style>
+            body {
+                background-color: black;
+                color: white;
+            }
+
+            @media (prefers-color-scheme: light) {
+                body {
+                    background-color: white;
+                    color: black;
+                }
+            }
+
+            .split {
+                height: 100%;
+                width: 50%;
+                position: fixed;
+                z-index: 1;
+                top: 0;
+                overflow-x: hidden;
+            }
+
+            .left {
+                left: 0;
+            }
+
+            .right {
+                right: 0;
+            }
+
+            .centered {
+                position: absolute;
+                top: 50%;
+                left: 50%;
+                transform: translate(-50%, -50%);
+                text-align: center;
+            }
+
+            .footer {
+                position: fixed;
+                left: 0;
+                bottom: 0;
+                width: 100%;
+                text-align: center;
+            }
+        </style>
+    </head>
+    <body>
+        <center>
+            <h1>Not sure yet</h1>
+        </center>
+        <br/>
+        <div class="split left">
+            <div class="centered">
+                <h2>Electricity price, €/MWh</h2>
+                <canvas id="price_chart"></canvas>
+            </div>
+        </div>
+        <div class="split right">
+            <div class="centered">
+                <h2>Average kebab price: €7.11</h2>
+                <p>(according to <a href="https://github.com/jdegene/datasets/tree/main">https://github.com/jdegene/datasets/tree/main</a>)</p>
+            </div>
+        </div>
+        <div class="footer">
+            <p>This website uses no cookies. If you see one, it's been hacked.</p>
+        </div>
+    </body>
+    <script>
+        const values = [11.28,13.23,5.45,1.25,0.31,2.0,8.57,53.95,67.44,68.42,65.84,67.7,69.72,70.4,69.72,70.47,71.46,81.52,92.58,87.36,75.37,70.0,69.72,55.01];
+        draw_chart(values);
+
+        function draw_chart(values_array) {
+            const max_value = Math.max.apply(null, values_array);
+            const min_value = Math.min.apply(null, values_array);
+            let max_y = 2 * (Math.abs(max_value) - min_value);
+            if (max_y < 0.1) {
+                max_y = 100.0;
+            }
+
+            const price_chart_canvas = document.getElementById("price_chart");
+
+            const y_scale_factor = price_chart_canvas.height / max_y;
+            const x_step = price_chart_canvas.width / values_array.length;
+
+            const price_chart_ctx = price_chart_canvas.getContext("2d");
+
+            price_chart_ctx.strokeStyle = window.getComputedStyle(document.body, null).getPropertyValue("color");
+            price_chart_ctx.beginPath();
+            price_chart_ctx.moveTo(0, price_chart_canvas.height - 1);
+            price_chart_ctx.lineTo(price_chart_canvas.width - 1, price_chart_canvas.height - 1);
+            price_chart_ctx.stroke();
+
+            price_chart_ctx.beginPath();
+            price_chart_ctx.moveTo(0, 0);
+            price_chart_ctx.lineTo(0, price_chart_canvas.height - 1);
+            price_chart_ctx.stroke();
+
+            price_chart_ctx.strokeStyle = "red";
+            price_chart_ctx.beginPath();
+            price_chart_ctx.moveTo(0, price_chart_canvas.height - values_array[0] * y_scale_factor);
+            for (i = 1; i < values_array.length; i++) {
+                price_chart_ctx.lineTo(i * x_step, price_chart_canvas.height - values_array[i] * y_scale_factor);
+            }
+            price_chart_ctx.stroke();
+
+            price_chart_ctx.fillStyle = "red";
+            price_chart_ctx.font = window.getComputedStyle(document.body, null).getPropertyValue("font");
+            price_chart_ctx.fillText("€" + max_value, 0, parseInt(window.getComputedStyle(document.body, null).getPropertyValue('font-size')));
+
+            price_chart_ctx.fillStyle = window.getComputedStyle(document.body, null).getPropertyValue("color");
+            price_chart_ctx.font = window.getComputedStyle(document.body, null).getPropertyValue("font");
+            price_chart_ctx.fillText("€" + min_value, 0, price_chart_canvas.height - parseInt(window.getComputedStyle(document.body, null).getPropertyValue('font-size')));
+        }
+    </script>
+</html>
