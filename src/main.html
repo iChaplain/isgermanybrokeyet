@@ -74,7 +74,7 @@
 
         function price_chart(values_array) {
             const price_chart_canvas = document.getElementById("price_chart");
-            const price_chart_ctx = price_chart_canvas.getContext("2d");
+            let price_chart_ctx = price_chart_canvas.getContext("2d");
             const text_height = parseInt(window.getComputedStyle(document.body, null).getPropertyValue('font-size'));
 
             const max_value = Math.max.apply(null, values_array);
@@ -87,12 +87,14 @@
             const max_value_str = "€" + max_value;
             const min_value_str = "€" + min_value;
             price_chart_ctx.font = window.getComputedStyle(document.body, null).getPropertyValue("font");
-            const left_padding = Math.max.apply(null, [price_chart_ctx.measureText(max_value_str).width, price_chart_ctx.measureText(min_value_str).width]) + 1;
-            const width = price_chart_canvas.width - left_padding;
+            const left_padding = Math.max.apply(null, [price_chart_ctx.measureText(max_value_str).width, price_chart_ctx.measureText(min_value_str).width, "Min".length, "Max".length]) + 1;
+            const plot_width = price_chart_canvas.width - left_padding;
             const y_scale_factor = price_chart_canvas.height / max_y;
-            const x_step = width / values_array.length;
+            const x_step = plot_width / values_array.length;
 
-            price_chart_ctx.strokeStyle = window.getComputedStyle(document.body, null).getPropertyValue("color");
+            const text_color = window.getComputedStyle(document.body, null).getPropertyValue("color");
+
+            price_chart_ctx.strokeStyle = text_color;
             price_chart_ctx.beginPath();
             price_chart_ctx.moveTo(left_padding, price_chart_canvas.height - 1);
             price_chart_ctx.lineTo(price_chart_canvas.width - 1, price_chart_canvas.height - 1);
@@ -115,9 +117,55 @@
             price_chart_ctx.fillText("Max", 0, text_height);
             price_chart_ctx.fillText(max_value_str, 0, text_height * 2);
 
-            price_chart_ctx.fillStyle = window.getComputedStyle(document.body, null).getPropertyValue("color");
+            price_chart_ctx.fillStyle = text_color;
             price_chart_ctx.fillText("Min", 0, price_chart_canvas.height - text_height);
             price_chart_ctx.fillText(min_value_str, 0, price_chart_canvas.height);
+
+            let price_tooltip_div = document.createElement("div");
+            price_tooltip_div.style.display = "none";
+            price_tooltip_div.style.position = "absolute";
+            document.body.appendChild(price_tooltip_div);
+
+            const price_chart_canvas_top = price_chart_canvas.getBoundingClientRect().top;
+
+            let price_bar_div = document.createElement("div");
+            price_bar_div.style.display = "none";
+            price_bar_div.style.position = "absolute";
+            price_bar_div.style.backgroundColor = text_color;
+            price_bar_div.style.height = price_chart_canvas.height;
+            price_bar_div.style.top = price_chart_canvas_top;
+            price_bar_div.style.width = "1px";
+            document.body.appendChild(price_bar_div);
+
+            const price_chart_canvas_left = price_chart_canvas.getBoundingClientRect().left;
+
+            price_chart_canvas.addEventListener("mousemove", (e) => {
+                if (e.clientX > price_chart_canvas_left + left_padding) {
+                    price_tooltip_div.style.left = e.clientX;
+                    price_tooltip_div.style.top = e.clientY;
+                    price_tooltip_div.style.display = "block";
+
+                    price_bar_div.style.left = e.clientX;
+                    price_bar_div.style.display = "block";
+
+                    price_chart_canvas.style.cursor = "none";
+
+                    const price_index_tmp = Math.round((e.clientX - (price_chart_canvas_left + left_padding)) / x_step);
+                    const price_index = price_index_tmp > values_array.length - 1 ? values_array.length - 1 : (price_index_tmp < 0 ? 0 : price_index_tmp);
+                    price_tooltip_div.innerText = "€" + values_array[price_index];
+                }
+                else {
+                    price_tooltip_div.style.display = "none";
+                    price_bar_div.style.display = "none";
+                    price_chart_canvas.style.cursor = "auto";
+                }
+            });
+
+            price_chart_canvas.addEventListener("mouseout", (e) => {
+                price_tooltip_div.style.display = "none";
+                price_bar_div.style.display = "none";
+                price_chart_canvas.style.cursor = "auto";
+            });
         }
     </script>
 </html>
