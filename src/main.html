@@ -70,49 +70,54 @@
     </body>
     <script>
         const values = [11.28,13.23,5.45,1.25,0.31,2.0,8.57,53.95,67.44,68.42,65.84,67.7,69.72,70.4,69.72,70.47,71.46,81.52,92.58,87.36,75.37,70.0,69.72,55.01];
-        draw_chart(values);
+        price_chart(values);
 
-        function draw_chart(values_array) {
+        function price_chart(values_array) {
+            const price_chart_canvas = document.getElementById("price_chart");
+            const price_chart_ctx = price_chart_canvas.getContext("2d");
+            const text_height = parseInt(window.getComputedStyle(document.body, null).getPropertyValue('font-size'));
+
             const max_value = Math.max.apply(null, values_array);
             const min_value = Math.min.apply(null, values_array);
-            let max_y = 2 * (Math.abs(max_value) - min_value);
+            let max_y = Math.abs(max_value) - min_value;
             if (max_y < 0.1) {
-                max_y = 100.0;
+                max_y = text_height * 4;
             }
 
-            const price_chart_canvas = document.getElementById("price_chart");
-
+            const max_value_str = "€" + max_value;
+            const min_value_str = "€" + min_value;
+            price_chart_ctx.font = window.getComputedStyle(document.body, null).getPropertyValue("font");
+            const left_padding = Math.max.apply(null, [price_chart_ctx.measureText(max_value_str).width, price_chart_ctx.measureText(min_value_str).width]) + 1;
+            const width = price_chart_canvas.width - left_padding;
             const y_scale_factor = price_chart_canvas.height / max_y;
-            const x_step = price_chart_canvas.width / values_array.length;
-
-            const price_chart_ctx = price_chart_canvas.getContext("2d");
+            const x_step = width / values_array.length;
 
             price_chart_ctx.strokeStyle = window.getComputedStyle(document.body, null).getPropertyValue("color");
             price_chart_ctx.beginPath();
-            price_chart_ctx.moveTo(0, price_chart_canvas.height - 1);
+            price_chart_ctx.moveTo(left_padding, price_chart_canvas.height - 1);
             price_chart_ctx.lineTo(price_chart_canvas.width - 1, price_chart_canvas.height - 1);
             price_chart_ctx.stroke();
 
             price_chart_ctx.beginPath();
-            price_chart_ctx.moveTo(0, 0);
-            price_chart_ctx.lineTo(0, price_chart_canvas.height - 1);
+            price_chart_ctx.moveTo(left_padding, 0);
+            price_chart_ctx.lineTo(left_padding, price_chart_canvas.height - 1);
             price_chart_ctx.stroke();
 
             price_chart_ctx.strokeStyle = "red";
             price_chart_ctx.beginPath();
-            price_chart_ctx.moveTo(0, price_chart_canvas.height - values_array[0] * y_scale_factor);
+            price_chart_ctx.moveTo(left_padding, price_chart_canvas.height - values_array[0] * y_scale_factor);
             for (i = 1; i < values_array.length; i++) {
-                price_chart_ctx.lineTo(i * x_step, price_chart_canvas.height - values_array[i] * y_scale_factor);
+                price_chart_ctx.lineTo(left_padding + i * x_step, price_chart_canvas.height - values_array[i] * y_scale_factor);
             }
             price_chart_ctx.stroke();
 
             price_chart_ctx.fillStyle = "red";
-            price_chart_ctx.font = window.getComputedStyle(document.body, null).getPropertyValue("font");
-            price_chart_ctx.fillText("€" + max_value, 0, parseInt(window.getComputedStyle(document.body, null).getPropertyValue('font-size')));
+            price_chart_ctx.fillText("Max", 0, text_height);
+            price_chart_ctx.fillText(max_value_str, 0, text_height * 2);
 
             price_chart_ctx.fillStyle = window.getComputedStyle(document.body, null).getPropertyValue("color");
-            price_chart_ctx.font = window.getComputedStyle(document.body, null).getPropertyValue("font");
-            price_chart_ctx.fillText("€" + min_value, 0, price_chart_canvas.height - parseInt(window.getComputedStyle(document.body, null).getPropertyValue('font-size')));
+            price_chart_ctx.fillText("Min", 0, price_chart_canvas.height - text_height);
+            price_chart_ctx.fillText(min_value_str, 0, price_chart_canvas.height);
         }
     </script>
 </html>
