@@ -24,10 +24,13 @@ struct ApiPrices {
 
 #[get("/price")]
 pub async fn get_price(data: web::Data<AppState>) -> Result<web::Json<Prices>> {
-    let mut price_sync = data.price_sync.lock().map_err(|e| error::ErrorInternalServerError(e.to_string()))?;
+    let mut price_sync = data
+        .price_sync
+        .lock()
+        .map_err(|e| error::ErrorInternalServerError(e.to_string()))?;
     let now = Instant::now();
 
-    if  price_sync.last_sync + SYNC_PERIOD > now {
+    if price_sync.last_sync + SYNC_PERIOD > now {
         info!("returning existing prices");
         return Ok(web::Json(price_sync.prices.clone()));
     }

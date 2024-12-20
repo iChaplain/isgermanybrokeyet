@@ -92,7 +92,7 @@
             price_chart_ctx.font = window.getComputedStyle(document.body, null).getPropertyValue("font");
             const left_padding = Math.max.apply(null, [price_chart_ctx.measureText(max_value_str).width, price_chart_ctx.measureText(min_value_str).width, "Min".length, "Max".length]) + 1;
             const plot_width = price_chart_canvas.width - left_padding;
-            const y_scale_factor = price_chart_canvas.height / max_y;
+            const y_scale_factor = max_y < price_chart_canvas.height ? max_y / price_chart_canvas.height : price_chart_canvas.height / max_y;
             const x_step = plot_width / prices_array.length;
 
             const text_color = window.getComputedStyle(document.body, null).getPropertyValue("color");
@@ -155,7 +155,7 @@
 
                     const price_index_tmp = Math.round((e.clientX - (price_chart_canvas_left + left_padding)) / x_step);
                     const price_index = price_index_tmp > prices_array.length - 1 ? prices_array.length - 1 : (price_index_tmp < 0 ? 0 : price_index_tmp);
-                    price_tooltip_div.innerText = "€" + prices_array[price_index];
+                    price_tooltip_div.innerHTML = "€" + prices_array[price_index] + "<br>" + dates_array[price_index];
                 }
                 else {
                     price_tooltip_div.style.display = "none";
