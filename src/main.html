@@ -69,16 +69,19 @@
         </div>
     </body>
     <script>
-        const values = [11.28,13.23,5.45,1.25,0.31,2.0,8.57,53.95,67.44,68.42,65.84,67.7,69.72,70.4,69.72,70.47,71.46,81.52,92.58,87.36,75.37,70.0,69.72,55.01];
-        price_chart(values);
+        window
+            .fetch("/price", {credentials: "omit"})
+            .then((response) => response.json())
+            .then((data) => price_chart(data.prices, data.dates))
+            .catch(console.error);
 
-        function price_chart(values_array) {
+        function price_chart(prices_array, dates_array) {
             const price_chart_canvas = document.getElementById("price_chart");
             let price_chart_ctx = price_chart_canvas.getContext("2d");
             const text_height = parseInt(window.getComputedStyle(document.body, null).getPropertyValue('font-size'));
 
-            const max_value = Math.max.apply(null, values_array);
-            const min_value = Math.min.apply(null, values_array);
+            const max_value = Math.max.apply(null, prices_array);
+            const min_value = Math.min.apply(null, prices_array);
             let max_y = Math.abs(max_value) - min_value;
             if (max_y < 0.1) {
                 max_y = text_height * 4;
@@ -90,7 +93,7 @@
             const left_padding = Math.max.apply(null, [price_chart_ctx.measureText(max_value_str).width, price_chart_ctx.measureText(min_value_str).width, "Min".length, "Max".length]) + 1;
             const plot_width = price_chart_canvas.width - left_padding;
             const y_scale_factor = price_chart_canvas.height / max_y;
-            const x_step = plot_width / values_array.length;
+            const x_step = plot_width / prices_array.length;
 
             const text_color = window.getComputedStyle(document.body, null).getPropertyValue("color");
 
@@ -107,9 +110,9 @@
 
             price_chart_ctx.strokeStyle = "red";
             price_chart_ctx.beginPath();
-            price_chart_ctx.moveTo(left_padding, price_chart_canvas.height - values_array[0] * y_scale_factor);
-            for (i = 1; i < values_array.length; i++) {
-                price_chart_ctx.lineTo(left_padding + i * x_step, price_chart_canvas.height - values_array[i] * y_scale_factor);
+            price_chart_ctx.moveTo(left_padding, price_chart_canvas.height - prices_array[0] * y_scale_factor);
+            for (i = 1; i < prices_array.length; i++) {
+                price_chart_ctx.lineTo(left_padding + i * x_step, price_chart_canvas.height - prices_array[i] * y_scale_factor);
             }
             price_chart_ctx.stroke();
 
@@ -151,8 +154,8 @@
                     price_chart_canvas.style.cursor = "none";
 
                     const price_index_tmp = Math.round((e.clientX - (price_chart_canvas_left + left_padding)) / x_step);
-                    const price_index = price_index_tmp > values_array.length - 1 ? values_array.length - 1 : (price_index_tmp < 0 ? 0 : price_index_tmp);
-                    price_tooltip_div.innerText = "€" + values_array[price_index];
+                    const price_index = price_index_tmp > prices_array.length - 1 ? prices_array.length - 1 : (price_index_tmp < 0 ? 0 : price_index_tmp);
+                    price_tooltip_div.innerText = "€" + prices_array[price_index];
                 }
                 else {
                     price_tooltip_div.style.display = "none";
